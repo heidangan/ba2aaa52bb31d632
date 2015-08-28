@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Python Threadpool Interface Demo - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="python-threadpool-interface-demo">Python Threadpool Interface Demo</h1>
+<p class="date">09 Jan 2015 - evi1m0</p>
+
+<h4 id="introduction">Introduction</h4>
+
+<p>threadpool: <a href="https://pypi.python.org/pypi/threadpool">https://pypi.python.org/pypi/threadpool</a></p>
+
+<blockquote>
+  <p>Easy to use object-oriented thread pool framework</p>
+
+  <p>A thread pool is an object that maintains a pool of worker threads to perform time consuming operations in parallel. It assigns jobs to the threads by putting them in a work request queue, where they are picked up by the next available thread. This then performs the requested operation in the background and puts the results in another queue.</p>
+
+  <p>The thread pool object can then collect the results from all threads from this queue as soon as they become available or after all threads have finished their work. It’s also possible, to define callbacks to handle each result as it comes in.</p>
+</blockquote>
+
+<h4 id="transfer-parameters">Transfer parameters</h4>
+
+<p>WTF! Shen me gui!</p>
+
+<h4 id="demo">DEMO</h4>
+
+<pre><code>#!/usr/bin/env python
+# coding=utf8
+# author=ff0000team
+
+import threadpool as tp
+
+def test(url, passwd):
+    print url, passwd
+
+if __name__ == '__main__':
+    args = [
+        (['http://xxx.com', '123'], {}),
+        (['http://yyy.com', '213'], {}), 
+        (['http://zzz.com', '321'], {})
+    ]
+    '''
+    ``args_list`` contains the parameters for each invocation of callable.
+    Each item in ``args_list`` should be either a 2-item tuple of the list of
+    positional arguments and a dictionary of keyword arguments or a single,
+    non-tuple argument.
+    '''
+    pool = tp.ThreadPool(2)
+    reqs = tp.makeRequests(test, args)
+    [pool.putRequest(req) for req in reqs]
+    pool.wait()
+</code></pre>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

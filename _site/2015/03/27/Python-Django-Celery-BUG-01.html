@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Python-Django Celery BUG01 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="python-django-celery-bug01">Python-Django Celery BUG01</h1>
+<p class="date">27 Mar 2015 - evi1m0</p>
+
+<h4 id="celery">Celery</h4>
+
+<blockquote>
+  <p>Celery is an asynchronous task queue/job queue based on distributed message passing.</p>
+
+  <p>It is focused on real-time operation, but supports scheduling as well.</p>
+
+  <p>The execution units, called tasks, are executed concurrently on a single or more worker servers using multiprocessing, Eventlet, or gevent. Tasks can execute asynchronously (in the background) or synchronously (wait until ready).</p>
+</blockquote>
+
+<p>Celery是Python开发的分布式任务调度模块，今天抽空看了一下，果然接口简单，开发容易，5分钟就写出了一个异步发送邮件的服务。</p>
+
+<p>Celery本身不含消息服务，它使用第三方消息服务来传递任务，目前，Celery支持的消息服务有RabbitMQ、Redis甚至是数据库，当然Redis应该是最佳选择。</p>
+
+<h4 id="install-celery">Install Celery</h4>
+
+<p>pip: </p>
+
+<pre><code>$ sudo pip install Celery
+</code></pre>
+
+<p>easy_install:</p>
+
+<pre><code>$ sudo easy_install Celery
+</code></pre>
+
+<h4 id="install-redis">Install Redis</h4>
+
+<p>Ubuntu:</p>
+
+<pre><code>wget http://download.redis.io/releases/redis-2.8.9.tar.gz
+tar xvfz redis-2.8.9.tar.gz
+cd redis-2.8.9
+sudo make
+sudo make install
+</code></pre>
+
+<p>Celery-Redis:</p>
+
+<pre><code>$ pip install -U celery[redis]
+</code></pre>
+
+<p>Setting password (redis):</p>
+
+<pre><code>vim /etc/redis/redis.conf
+
+requirepass passwordxxx
+</code></pre>
+
+<h4 id="python-django-bug-01---fixed">Python-Django BUG 01 - Fixed</h4>
+
+<p>我将要把 Django 项目的一个模块使用 Celery 进行调度，但使用过程中发现了恼火的问题：</p>
+
+<pre><code>Received unregistered task of type 'tasks.add'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you are using relative imports?
+Please see http://bit.ly/gLye1c for more information.
+
+The full contents of the message body was:
+{'retries': 0, 'task': 'tasks.add', 'utc': False, 'args': (4, 4), 'expires': None, 'eta': None, 'kwargs': {}, 'id': '841bc21f-8124-436b-92f1-e3b62cafdfe7'}
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/celery/worker/consumer.py", line 444, in receive_message
+    self.strategies[name](message, body, message.ack_log_error)
+KeyError: 'tasks.add'
+</code></pre>
+
+<p>按照官方的推荐在当前目录下新建了 Celerycibfug.py:</p>
+
+<pre><code>BROKER_URL = 'redis://:linux@localhost:6379//'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ENABLE_UTC = True
+CELERY_IMPORTS = ("scanner",)
+</code></pre>
+
+<p>RUN:</p>
+
+<pre><code>celeryd --config=celeryconfig --loglevel=INFO
+</code></pre>
+
+<p>仍然会报错，最后发现仅仅是需要给 @app.task 修饰器定义 name 值：</p>
+
+<pre><code>@app.task(name='sxs-scanner')
+def main(test, data=None)
+    ...
+</code></pre>
+
+<p>就这样，这个问题成功的修复并 RUN 了起来，真是累心：</p>
+
+<center>
+<img src="http://ww3.sinaimg.cn/large/c334041btw1eqk59nu98lj20rp08zdll.jpg" />
+</center>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

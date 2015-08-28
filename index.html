@@ -1,0 +1,38 @@
+---
+layout: default
+title: Index
+---
+<style>
+  body {
+    font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+  }
+  .post-content {
+    font-size: 16px;
+  }
+</style>
+<div style="border-top: 1px solid#C5C5C5;margin-top: 1em;overflow: hidden;"></div>
+{% for post in paginator.posts %}
+  <ul class="post-list-ul">
+      <li>
+          <!--
+          <span>{{ post.date | date_to_string }}</span>
+          <span class="seperator">~</span>
+          -->
+          <a href="{{ post.url }}">{{ post.title }}</a>
+      </li>
+  </ul>
+{% endfor %}
+
+<div class="pagination" style="margin-top: 25px;">
+  {% if paginator.previous_page %}
+    <a href="{{ paginator.previous_page_path }}" class="previous">Previous</a>
+  {% else %}
+    <span class="previous">Previous</span>
+  {% endif %}
+  <span class="page_number ">Page: {{ paginator.page }} of {{ paginator.total_pages }}</span>
+  {% if paginator.next_page %}
+    <a href="{{ paginator.next_page_path }}" class="next">Next</a>
+  {% else %}
+    <span class="next ">Next</span>
+  {% endif %}
+</div>

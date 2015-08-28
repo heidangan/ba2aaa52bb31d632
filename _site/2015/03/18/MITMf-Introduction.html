@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>MIMTf [中间人攻击测试框架] - Introduction - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="mimtf----introduction">MIMTf [中间人攻击测试框架] - Introduction</h1>
+<p class="date">18 Mar 2015 - evi1m0</p>
+
+<h4 id="mimtf-">MIMTf 介绍</h4>
+
+<ul>
+  <li>Github 项目主页：<a href="https://github.com/byt3bl33d3r/MITMf">https://github.com/byt3bl33d3r/MITMf</a></li>
+  <li>开发案例及更新  ：<a href="http://sign0f4.blogspot.it/">http://sign0f4.blogspot.it/</a></li>
+  <li>MIMTf  项目作者：<a href="https://github.com/byt3bl33d3r">byt3bl33d3r</a></li>
+</ul>
+
+<p>MIMTf 全称为 Framework for Man-In-The-Middle attacks （中间人攻击框架），它基于 sergio-proxy 代理工具修改而来，由 Python 强势驱动。</p>
+
+<h4 id="mimtf--1">MIMTf 可用插件</h4>
+
+<ul>
+  <li>Responder - LLMNR, NBT-NS and MDNS poisoner</li>
+  <li>SSLstrip+ - Partially bypass HSTS</li>
+  <li>Spoof - Redirect traffic using ARP Spoofing, ICMP Redirects or DHCP Spoofing and modify DNS queries</li>
+  <li>Sniffer - Sniffs for various protocol login and auth attempts</li>
+  <li>BeEFAutorun - Autoruns BeEF modules based on clients OS or browser type</li>
+  <li>AppCachePoison - Perform app cache poison attacks</li>
+  <li>SessionHijacking - Performs session hijacking attacks, and stores cookies in a firefox profile</li>
+  <li>BrowserProfiler - Attempts to enumerate all browser plugins of connected clients</li>
+  <li>CacheKill - Kills page caching by modifying headers</li>
+  <li>FilePwn - Backdoor executables being sent over http using bdfactory</li>
+  <li>Inject - Inject arbitrary content into HTML content</li>
+  <li>JavaPwn - Performs drive-by attacks on clients with out-of-date java browser plugins</li>
+  <li>jskeylogger - Injects a javascript keylogger into clients webpages</li>
+  <li>Replace - Replace arbitary content in HTML content</li>
+  <li>SMBAuth - Evoke SMB challenge-response auth attempts</li>
+  <li>Upsidedownternet - Flips images 180 degrees</li>
+</ul>
+
+<h4 id="mimtf--2">MIMTf 安装</h4>
+
+<p>如何安装在 kali 系统上:</p>
+
+<pre><code>apt-get install mitmf
+</code></pre>
+
+<p>下面为我在 ubuntu 12.04 LTS 下的安装：</p>
+
+<pre><code>test@ff0000team:~/data$ git clone https://github.com/byt3bl33d3r/MITMf.git
+test@ff0000team:~/data$ cd MITMf/
+test@ff0000team:~/data/MITMf$ sudo ./setup.sh
+</code></pre>
+
+<p>查看 requirements.txt 可以看到 MIMTf 的依赖较多：</p>
+
+<pre><code>Twisted
+requests
+scapy
+msgpack-python
+dnspython
+user-agents
+configobj
+pyyaml
+NetfilterQueue &gt;= 0.6
+ua-parser
+Pillow
+pefile
+capstone
+</code></pre>
+
+<p>安装完成后运行：</p>
+
+<pre><code>python mitmf.py --help
+</code></pre>
+
+<p>不出意外的话，会爆缺少模块依赖的错误，使用 pip 或者 easy_install 进行安装即可，另外需要提一点因为依赖库中有谷歌源，所以如果未翻墙的话可能会下载依赖失败，例如：pefile ，可自行去 pypi 官方进行下载解压安装。</p>
+
+<p>有时包名与安装名不同，例如：</p>
+
+<pre><code>ImportError: No module named pcap
+sudo apt-get install python-libpcap
+
+ImportError: No module named msgpack
+easy_install msgpack-python
+</code></pre>
+
+<p>另外项目主页 README 中有关 Dependency change! 的提醒：</p>
+
+<blockquote>
+  <p>As of v0.9.5 DNS tampering support needs NetfilterQueue v0.6 which is currently a fork, so it cannot be installed via pip or easy_install.</p>
+</blockquote>
+
+<p>是有关 netfilterqueue 的依赖问题，解决方案：</p>
+
+<pre><code>ImportError: No module named netfilterqueue
+apt-get install build-essential python-dev libnetfilter-queue-dev
+pip install NetfilterQueue
+</code></pre>
+
+<p>或直接访问 netfilterqueue 项目主页下载安装：</p>
+
+<pre><code>Github: https://github.com/kti/python-netfilterqueue
+</code></pre>
+
+<h4 id="mitmf-">MITMf 运行</h4>
+
+<pre><code>test@ff0000team:~/data/MITMf$ python mitmf.py --help
+
+----------- BANNER ----------    
+
+usage: 
+
+MITMf v0.9.5 - Framework for MITM attacks
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+</code></pre>
+
+<p>如何判断是否正常运转？</p>
+
+<p>运行 mitmf.py 入口文件后， BANNER (LOGO) 上方未出现下面等错误信息字样。</p>
+
+<pre><code>[-] Wrong version of NetfilterQueue library installed!
+[-] Download it from here https://github.com/fqrouter/python-netfilterqueue and manually install it!
+[-] user_agents library missing! User-Agent parsing will be disabled!
+</code></pre>
+
+<p>至此 MITMf 正常运行，安装完毕。</p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

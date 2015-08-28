@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Django实现RSS订阅功能 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="djangorss">Django实现RSS订阅功能</h1>
+<p class="date">16 Jan 2015 - evi1m0</p>
+
+<ol>
+  <li>
+    <p>Create APP</p>
+
+    <p>python manage.py startapp feeds</p>
+  </li>
+  <li>
+    <p>Edit <code>views.py</code></p>
+
+    <pre><code> #!/usr/bin/env python
+ # coding=utf8
+ # author=evi1m0
+
+ from django.shortcuts import render
+ from django.core.urlresolvers import reverse
+ from django.contrib.syndication.views import Feed
+
+ from blog.apps.posts.models import topic
+
+ class LatestEntries(Feed):
+     title = "Linux.im"
+     link = "/"
+     description = "Updates on changes and additions to www.linux.im"
+
+     def items(self):
+         post = topic.objects.filter(status=1)[:20]
+         return post
+
+     def item_title(self, item):
+         return item.title
+
+     def item_description(self, item):
+         return None
+
+     def item_link(self, item):
+         return '/posts/' + item.id + '/'
+</code></pre>
+  </li>
+  <li>
+    <p>Edit <code>url.py</code></p>
+
+    <pre><code> from blog.apps.feed.views import *
+    
+ urlpatterns += patterns('blog.apps.feed.views',
+ 		url(r'^feeds/', LatestEntries(), name='feeds'),
+ )
+</code></pre>
+  </li>
+</ol>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

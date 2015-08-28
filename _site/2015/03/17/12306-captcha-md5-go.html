@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>12306 新版验证码 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="section">12306 新版验证码</h1>
+<p class="date">17 Mar 2015 - evi1m0</p>
+
+<ul>
+  <li><a href="http://gz.ifeng.com/zaobanche/detail_2015_03/17/3666125_0.shtml">12306官网推新型“图片验证码”抢票软件或集体失效</a></li>
+  <li><a href="http://digi.hsw.cn/system/2015/0316/15899.shtml">12306官网推出新验证码登录 抢票工具都跪了</a></li>
+  <li><a href="http://it.21cn.com/itroll/a/2015/0316/10/29219239.shtml">12306验证码改版 目前所有抢票工具失效</a></li>
+</ul>
+
+<p>近段时间 12306 订票网站验证码升级为用户识别图像内容，然后选取符合条件的图片为验证码：</p>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eq8ijbaf75j209806xaaj.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eq8ijbaf75j209806xaaj.jpg" /></p>
+
+<p>验证码接口：<a href="https://kyfw.12306.cn/otn/passcodeNew/getPassCodeNew?module=login&amp;rand=sjrand&amp;0.12528680684044957">https://kyfw.12306.cn/otn/passcodeNew/getPassCodeNew?module=login&amp;rand=sjrand&amp;0.12528680684044957</a></p>
+
+<p>第一步首先取整张图片的 Md5 ，不断遍历查看是否有重复，这里直接记录下用 Golang 编写的代码：</p>
+
+<div class="highlight"><pre><code class="language-go" data-lang="go"><span class="c1">// Script: 12306 Captcha Md5</span>
+<span class="c1">// Author: Evi1m0@2015</span>
+    <span class="kn">package</span> <span class="nx">main</span>
+
+    <span class="kn">import</span> <span class="p">(</span>
+        <span class="s">&quot;crypto/md5&quot;</span>
+        <span class="s">&quot;crypto/tls&quot;</span>
+        <span class="s">&quot;encoding/hex&quot;</span>
+        <span class="s">&quot;errors&quot;</span>
+        <span class="s">&quot;fmt&quot;</span>
+        <span class="s">&quot;io/ioutil&quot;</span>
+
+        <span class="s">&quot;net&quot;</span>
+        <span class="s">&quot;net/http&quot;</span>
+        <span class="s">&quot;time&quot;</span>
+    <span class="p">)</span>
+
+    <span class="kd">func</span> <span class="nx">HttpGet</span><span class="p">()</span> <span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// SSL</span>
+        <span class="nx">tr</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Transport</span><span class="p">{</span>
+            <span class="nx">TLSClientConfig</span><span class="p">:</span>    <span class="o">&amp;</span><span class="nx">tls</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span><span class="nx">InsecureSkipVerify</span><span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+            <span class="nx">DisableCompression</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="nx">Dial</span><span class="p">:</span> <span class="kd">func</span><span class="p">(</span><span class="nx">netw</span><span class="p">,</span> <span class="nx">addr</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">c</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">net</span><span class="p">.</span><span class="nx">DialTimeout</span><span class="p">(</span><span class="nx">netw</span><span class="p">,</span> <span class="nx">addr</span><span class="p">,</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="o">*</span><span class="mi">8</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+                    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+                <span class="p">}</span>
+                <span class="nx">c</span><span class="p">.</span><span class="nx">SetDeadline</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">().</span><span class="nx">Add</span><span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">))</span>
+                <span class="k">return</span> <span class="nx">c</span><span class="p">,</span> <span class="kc">nil</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="nx">client</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Client</span><span class="p">{</span><span class="nx">Transport</span><span class="p">:</span> <span class="nx">tr</span><span class="p">}</span>
+        <span class="kd">var</span> <span class="nx">captchaApi</span> <span class="kt">string</span> <span class="p">=</span> <span class="p">(</span><span class="s">&quot;http://kyfw.12306.cn/otn/passcodeNew/&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;getPassCodeNew?module=login&amp;rand=sjrand&quot;</span><span class="p">)</span>
+        <span class="nx">resp</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">captchaApi</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">body</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ioutil</span><span class="p">.</span><span class="nx">ReadAll</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;IO Error!&quot;</span><span class="p">)</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">md5</span> <span class="o">:=</span> <span class="nx">md5</span><span class="p">.</span><span class="nx">New</span><span class="p">()</span>
+                <span class="nx">md5</span><span class="p">.</span><span class="nx">Write</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">body</span><span class="p">))</span>
+                <span class="nx">bodyMd5</span> <span class="o">:=</span> <span class="nx">hex</span><span class="p">.</span><span class="nx">EncodeToString</span><span class="p">(</span><span class="nx">md5</span><span class="p">.</span><span class="nx">Sum</span><span class="p">(</span><span class="kc">nil</span><span class="p">))</span>
+                <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Md5: %s\n&quot;</span><span class="p">,</span> <span class="nx">bodyMd5</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nx">body</span><span class="p">,</span> <span class="kc">nil</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;IO Error!&quot;</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">10000</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+            <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">HttpGet</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+                <span class="k">continue</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span></code></pre></div>
+
+<p>go build 12306PicMd5.go</p>
+
+<pre><code>➜  12306  ./12306PicMd5
+Md5: 79a63dbc2c21e0f0608de905b2283012
+Md5: 9fc50fecd924d126824f687d5cc6d2b6
+Md5: babd2b8cc1d42291d0f56198bacab87f
+Md5: e90e8bce732cd7f1b3d7d69197121026
+Md5: c0da5d243b4a93fb9f37dc6cbc9473e9
+Md5: 480ac04fabc0cb484c488197e9466fe1
+Md5: 08078c472e3c0a3dac3682d02fd74010
+Md5: 73b8b643decb065793fcc47afdd539de
+</code></pre>
+
+<p>放到服务器上 RUN 了起来，这次的主要目的是对比图像是否为整张图片的图片库，还是服务器后端生成的小图拼接。</p>
+
+<p>实践与单纯的猜测意义完全不同，经过确认发现验证码是后端不断的生成的，难怪验证码访问时会那么慢：）</p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

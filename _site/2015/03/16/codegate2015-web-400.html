@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>CodeGate2015 CTF - WEB400 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="codegate2015-ctf---web400">CodeGate2015 CTF - WEB400</h1>
+<p class="date">16 Mar 2015 - seichi</p>
+
+<ul>
+  <li><a href="https://0x1337seichi.wordpress.com/2015/03/15/codgate-2015-ctf-quals-owltube-writeup-web-400/">https://0x1337seichi.wordpress.com/2015/03/15/codgate-2015-ctf-quals-owltube-writeup-web-400/</a></li>
+</ul>
+
+<p>Another web challenge from Codegate quals .. always about Owls for this challenge we were given a youtube video player website also it’s <a href="https://docs.google.com/file/d/0B00eQVZ8G6E6QjRHS0NaYmYzcjQ">source code</a>.</p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eq7ey9qgzhj20bw0eedh1.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eq7ey9qgzhj20bw0eedh1.jpg" /></p>
+
+<p>the website offer some fonctionnalities like registration and login:</p>
+
+<pre><code>def register():
+    u = {}
+    u["u"] = request.form.get("user")
+    u["pw"] = request.form.get("pw")
+    u["email"] = request.form.get("email")
+  
+    if g.db.users.find_one({"u":u["u"]}):
+        flash("Username taken")
+    else:
+        g.db.users.insert(u)
+  
+        for vid in defaultvids:
+            vid["user"] = u["u"]
+            g.db.videos.insert(vid)
+  
+        flash("Registered")
+  
+    return make_response(redirect(url_for('index')))
+def login():
+    u = {}
+    u["u"] = request.form.get("user")
+    u["pw"] = request.form.get("pw")
+  
+    user = g.db.users.find_one(u)
+  
+    resp = make_response(redirect(url_for('index')))
+  
+    if user:
+        set_cookie(resp, u)
+    else:
+        flash("Login failed")
+  
+      
+    return resp
+</code></pre>
+
+<p>We can see that the authentication mechanism is cookie based:</p>
+
+<pre><code>def get_cookie():
+    cookie = request.cookies.get("auth")
+    if not cookie: return None
+  
+    cookie = cookie.decode("base64")
+  
+    iv = cookie[:BS]
+    cookie = cookie[BS:]
+    aes = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+    cookie = aes.decrypt(cookie)
+    cookie = unpad(cookie)
+  
+    cookie = json.loads(cookie)
+  
+    return cookie
+  
+def set_cookie(resp, cookie):
+    cookie = json.dumps(cookie)
+  
+    iv = Random.new().read(BS)
+    aes = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+    cookie = pad(cookie)
+    cookie = iv + aes.encrypt(cookie)
+    cookie = cookie.encode("base64")
+    cookie = cookie.replace("\n", "")
+  
+    resp.set_cookie("auth", cookie)
+  
+def is_logged_in():
+    cookie = get_cookie()
+  
+    if not cookie: return False
+  
+    user = g.db.users.find_one(get_cookie())
+  
+    if not user: return False
+    g.user = cookie
+  
+    return True
+</code></pre>
+
+<p>AES with Cipher Block Chaining (CBC) is being used here and both encryption and decryption operations are done using a secret key wich we don’t have .. but unlike the previous challenge this one was straight forward , as we immediately knew what we wanna do .. and what we wanna do is ** Byte flipping Attack **.</p>
+
+<p>In brief Byte flipping attack is the process of changing some bytes in the plain text by altering some bytes in the ciphertext , i won’t be diving into details but for more informations you can visit this <a href="http://resources.infosecinstitute.com/cbc-byte-flipping-attack-101-approach/">link</a> (excellent explanation btw)</p>
+
+<p>Now all we have to do is to forge a cookie wich when decrypted the corresponding username will be admin this one worked for me for example:</p>
+
+<pre><code>auth:dwc0RAPIv1KgpseYvk9u/p4wtI2RtOe6n22IcoEuoGdZ2b3n+0CUDoNgWF0OUqFP
+</code></pre>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eq7f29rvg1j20m80cydh5.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eq7f29rvg1j20m80cydh5.jpg" /></p>
+
+<p>Once you login as admin you’ll find The flag in the source code:</p>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eq7f2ym0zlj20u2016aag.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eq7f2ym0zlj20u2016aag.jpg" /></p>
+
+<p>Flag : the_owls_are_watching_again :)</p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>

