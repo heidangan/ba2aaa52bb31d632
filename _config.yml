@@ -4,5 +4,5 @@ mardown: redcarpet
 name: Linux.im#Evi1m0
 description: Hacking for fun.
 url: http://ba2aaa52bb31d632.github.io
-paginate: 20
+paginate: 100
 paginate_path: "/page:num/"
