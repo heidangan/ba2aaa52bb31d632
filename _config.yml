@@ -4,5 +4,5 @@ mardown: redcarpet
 name: heidangan.com#The One
 description: Hacking for fun.
 url: http://ba2aaa52bb31d632.github.io
-paginate: 100
+paginate: 5
 paginate_path: "/page:num/"
