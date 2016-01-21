@@ -1,8 +1,8 @@
 baseurl: /
 highlighter: pygments
 mardown: redcarpet
-name: heidangan.com#The One
+name: root#heidangan.com
 description: Hacking for fun.
-url: http://ba2aaa52bb31d632.github.io
+url: https://heidangan.com
 paginate: 5
 paginate_path: "/page:num/"
